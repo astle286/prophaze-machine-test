@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: {{ include "order-service.fullname" . }}
+  
+  labels:
+{{ include "order-service.labels" . | indent 4 }}
+
+spec:
+  replicas: {{ .Values.replicaCount }}
+
+selector:
+  matchLabels:
+{{ include "order-service.selectorLabels" . | indent 6 }}
+
+template:
+  metadata:
+    labels:
+{{ include "order-service.labels" . | indent 8 }}
+{{ include "order-service.selectorLabels" . | indent 8 }}
+
+    spec:
+      serviceAccountName: {{ .Release.Name }}
+
+      containers:
+        - name: {{ .Chart.Name }}
+
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
+
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
+
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.livenessProbe.path }}
+              port: {{ .Values.service.targetPort }}
+
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.readinessProbe.path }}
+              port: {{ .Values.service.targetPort }}
+
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
