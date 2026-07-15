@@ -323,37 +323,6 @@ order-service
 
 ---
 
-# Screenshots
-
-## API
-
-_Add screenshot here_
-
----
-
-## Docker Containers
-
-_Add screenshot here_
-
----
-
-## Helm Deployment
-
-_Add screenshot here_
-
----
-
-## Grafana Dashboard
-
-_Add screenshot here_
-
----
-
-## GitLab Pipeline
-
-_Add screenshot here_
-
----
 
 # Sample API Response
 
