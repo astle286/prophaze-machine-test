@@ -1,7 +1,7 @@
 # Order Service - CI/CD + Observability with GitLab
 
 ![Java](https://img.shields.io/badge/Java-21-blue)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.x-green)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.0-green)
 ![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED)
 ![Helm](https://img.shields.io/badge/Helm-3-blueviolet)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-Ready-326CE5)
