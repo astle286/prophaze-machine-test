@@ -1,9 +1,9 @@
 replicaCount: 2
 
 image:
-  repository: ""
-  tag: "latest"
-  pullPolicy: IfNotPresent
+  repository: ghcr.io/astle286/order-service
+  tag: "1.0.0"
+  pullPolicy: Always
 
 service:
   type: ClusterIP
