@@ -5,4 +5,4 @@ hello:
   stage: test
   script:
     - echo "Hello from GitLab Runner!"
-    - kubectl get nodes
+    
