@@ -1,13 +1,14 @@
 stages:
   - scan
   - build
-  - push
+  - security_scan
+  - push_image
   - deploy_dev
   - smoke_dev
 
 default:
   interruptible: true
-  
+
 variables:
   IMAGE_TAG: "v1.0.0"
 
@@ -18,22 +19,9 @@ ggshield_scan:
 
   before_script:
     - pip install ggshield
-    - export GITGUARDIAN_API_KEY=$GITGUARDIAN_API_KEY
 
   script:
-    - ggshield secret scan path .
-
-  allow_failure: false
-
-trivy_scan:
-  stage: scan
-
-  image:
-    name: aquasec/trivy:latest
-    entrypoint: [""]
-
-  script:
-    - trivy fs --severity HIGH,CRITICAL --exit-code 1 .
+    - ggshield secret scan repo .
 
   allow_failure: false
 
@@ -56,8 +44,22 @@ build:
       - target/*.jar
     expire_in: 1 day
 
+trivy_scan:
+  stage: security_scan
+  needs:
+    - build
+
+  image:
+    name: aquasec/trivy:latest
+    entrypoint: [""]
+
+  script:
+    - trivy fs --severity HIGH,CRITICAL --exit-code 1 target/
+
+  allow_failure: false
+
 push_image:
-  stage: push
+  stage: push_image
   needs:
     - build
   image: docker:28
