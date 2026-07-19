@@ -79,11 +79,14 @@ It demonstrates:
 
 - Spring Boot REST API
 - Docker containerization (non-root user + healthcheck)
-- GitLab CI/CD pipeline
-- Helm deployment to Kubernetes
+- GitLab CI/CD pipeline with GitLab Shared Runners
+- Maven build and unit testing
+- Secret scanning using GitGuardian (GGShield)
+- Vulnerability scanning using Trivy
+- Docker image publishing to GitLab Container Registry
+- Kubernetes deployment using Helm
 - Prometheus metrics
 - Grafana dashboard
-- Security scanning using ggshield and Trivy
 
 ---
 
@@ -242,15 +245,24 @@ smoke_dev
 
 Pipeline performs:
 
-- Secret scanning (ggshield)
-- Filesystem vulnerability scanning (Trivy)
-- Maven build
-- Unit tests
+- Secret scanning using GitGuardian (GGShield)
+- Maven dependency download
+- Maven verification and unit testing
+- Trivy filesystem vulnerability scanning
 - Docker image build
-- Image push to GitLab Container Registry
-- Helm deployment
-- Smoke testing
+- Push image to GitLab Container Registry
+- Optional Helm deployment
+- Optional smoke testing
 
+```
+# GitLab Container Registry
+
+Docker images are automatically built and pushed by GitLab CI.
+
+Example image:
+
+```text
+registry.gitlab.com/astle286/prophaze-machine-test:v1.0.0
 ---
 
 # Observability
@@ -318,7 +330,7 @@ order-service
 - Kubernetes
 - Prometheus
 - Grafana
-- ggshield
+- GitGuardian (GGShield)
 - Trivy
 
 ---
@@ -347,7 +359,15 @@ order-service
   }
 ]
 ```
+# Future Improvements
 
+- Deploy to a remote Kubernetes cluster
+- Self-hosted GitLab Runner on Kubernetes
+- Automated deployment after successful image push
+- Container image vulnerability scanning using `trivy image`
+- Ingress with TLS
+- Horizontal Pod Autoscaler
+- Argo CD for GitOps deployments
 ---
 
 # Bonus
