@@ -19,6 +19,7 @@ ggshield_scan:
 
   before_script:
     - pip install ggshield
+    - export GITGUARDIAN_API_KEY=$GITGUARDIAN_API_KEY
 
   script:
     - ggshield secret scan repo .
