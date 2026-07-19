@@ -1,8 +1,120 @@
 stages:
-  - test
+  - scan
+  - build
+  - push
+  - deploy_dev
+  - smoke_dev
 
-hello:
-  stage: test
+default:
+  interruptible: true
+  
+variables:
+  IMAGE_TAG: "v1.0.0"
+
+ggshield_scan:
+  stage: scan
+
+  image: python:3.12
+
+  before_script:
+    - pip install ggshield
+    - export GITGUARDIAN_API_KEY=$GITGUARDIAN_API_KEY
+
   script:
-    - echo "Hello from GitLab Runner!"
-    
+    - ggshield secret scan path .
+
+  allow_failure: false
+
+trivy_scan:
+  stage: scan
+
+  image:
+    name: aquasec/trivy:latest
+    entrypoint: [""]
+
+  script:
+    - trivy fs --severity HIGH,CRITICAL --exit-code 1 .
+
+  allow_failure: false
+
+build:
+  stage: build
+
+  image: maven:3.9.11-eclipse-temurin-21
+  variables:
+    MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+
+  cache:
+    key: maven-cache
+    paths:
+      - .m2/repository
+  script:
+    - mvn clean verify -B
+
+  artifacts:
+    paths:
+      - target/*.jar
+    expire_in: 1 day
+
+push_image:
+  stage: push
+  needs:
+    - build
+  image: docker:28
+
+  services:
+    - docker:28-dind
+
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_DRIVER: overlay2
+    DOCKER_BUILDKIT: "1"
+
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login \
+        -u "$CI_REGISTRY_USER" \
+        --password-stdin \
+        "$CI_REGISTRY"
+
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE:$IMAGE_TAG .
+    - docker push $CI_REGISTRY_IMAGE:$IMAGE_TAG
+
+deploy_dev:
+  stage: deploy_dev
+  rules:
+    - if: '$ENABLE_DEPLOY == "true"'
+      when: manual
+    - when: never
+  image:
+    name: dtzar/helm-kubectl:3.18
+    entrypoint: [""]
+
+  before_script:
+    - echo "$KUBE_CONFIG" | base64 -d > kubeconfig
+    - export KUBECONFIG=$PWD/kubeconfig
+
+  script:
+    - helm upgrade --install order-service ./helm \
+        --namespace dev \
+        --create-namespace \
+        --set image.repository=$CI_REGISTRY_IMAGE \
+        --set image.tag=$IMAGE_TAG
+
+smoke_dev:
+  stage: smoke_dev
+  rules:
+    - if: '$ENABLE_SMOKE == "true"'
+      when: manual
+    - when: never
+  image:
+    name: dtzar/helm-kubectl:3.18
+    entrypoint: [""]
+
+  before_script:
+    - echo "$KUBE_CONFIG" | base64 -d > kubeconfig
+    - export KUBECONFIG=$PWD/kubeconfig
+
+  script:
+    - kubectl rollout status deployment/order-service -n dev
+    - kubectl get pods -n dev
